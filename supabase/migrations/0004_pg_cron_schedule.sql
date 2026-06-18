@@ -1,0 +1,32 @@
+-- ============================================================================
+-- PHASE 4 :: pg_cron + pg_net scheduling (alternative to Vercel Cron)
+-- Replace APP_URL and CRON_SECRET below before applying. Times are UTC.
+-- IST 17:00 = 11:30 UTC ; IST 17:30 = 12:00 UTC ; IST 23:59 = 18:29 UTC.
+-- ============================================================================
+-- create extension if not exists pg_cron;
+-- create extension if not exists pg_net;
+--
+-- select cron.schedule('qc-lock', '29 18 * * *', $$
+--   select net.http_post(
+--     url := 'APP_URL/api/cron/lock',
+--     headers := jsonb_build_object('x-cron-secret','CRON_SECRET'));$$);
+--
+-- select cron.schedule('qc-daily', '30 11 * * *', $$
+--   select net.http_post(
+--     url := 'APP_URL/api/cron/daily-report',
+--     headers := jsonb_build_object('x-cron-secret','CRON_SECRET'));$$);
+--
+-- select cron.schedule('qc-ai', '45 11 * * 5', $$
+--   select net.http_post(
+--     url := 'APP_URL/api/cron/ai-review',
+--     headers := jsonb_build_object('x-cron-secret','CRON_SECRET'));$$);
+--
+-- select cron.schedule('qc-weekly', '0 12 * * 5', $$
+--   select net.http_post(
+--     url := 'APP_URL/api/cron/weekly-report',
+--     headers := jsonb_build_object('x-cron-secret','CRON_SECRET'));$$);
+--
+-- select cron.schedule('qc-email', '*/2 * * * *', $$
+--   select net.http_post(
+--     url := 'APP_URL/api/email/process',
+--     headers := jsonb_build_object('x-cron-secret','CRON_SECRET'));$$);

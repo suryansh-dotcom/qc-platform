@@ -1,0 +1,9 @@
+{
+  "crons": [
+    { "path": "/api/email/process",      "schedule": "*/2 * * * *" },
+    { "path": "/api/cron/lock",          "schedule": "29 18 * * *" },
+    { "path": "/api/cron/daily-report",  "schedule": "30 11 * * *" },
+    { "path": "/api/cron/ai-review",     "schedule": "45 11 * * 5" },
+    { "path": "/api/cron/weekly-report", "schedule": "0 12 * * 5" }
+  ]
+}

@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html, body { background: #ffffff; color: #0a0a0a; }
+body { font-feature-settings: "tnum" 1; }
+* { -webkit-tap-highlight-color: transparent; }
