@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, Input, Label } from "@/components/ui/primitives";
+import { Button, Card, GhostButton, Input, Label } from "@/components/ui/primitives";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,44 +13,67 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get("error");
+    if (err) {
+      setMsg(
+        err.includes("expired") || err.includes("invalid")
+          ? "That link or code has expired. Request a new one below — use only the 6-digit code, do not click the email link."
+          : decodeURIComponent(err)
+      );
+    }
+  }, []);
+
   async function sendLink() {
     if (busy) return;
     setBusy(true);
     setMsg(null);
+    const normalizedEmail = email.trim().toLowerCase();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/` },
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: `${siteUrl}/auth/callback`,
+        shouldCreateUser: true,
+      },
     });
     setBusy(false);
     if (error) {
       console.error("signInWithOtp error:", error);
-      try {
-        setMsg(error.message ?? JSON.stringify(error));
-      } catch (e) {
-        setMsg(String(error));
-      }
+      setMsg(error.message);
       return;
     }
+    setEmail(normalizedEmail);
+    setCode("");
     setStage("code");
-    setMsg("Check your email. Tap the link, or enter the 6-digit code below.");
+    setMsg(
+      "Enter the 6-digit code from your email. Do not click the magic link — email scanners often invalidate it before you can use it."
+    );
   }
 
   async function verifyCode() {
     if (busy) return;
     setBusy(true);
     setMsg(null);
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+    const normalizedEmail = email.trim().toLowerCase();
+    const token = code.trim();
+    const { error } = await supabase.auth.verifyOtp({
+      email: normalizedEmail,
+      token,
+      type: "email",
+    });
     setBusy(false);
     if (error) {
       console.error("verifyOtp error:", error);
-      try {
-        setMsg(error.message ?? JSON.stringify(error));
-      } catch (e) {
-        setMsg(String(error));
-      }
+      setMsg(
+        error.message.includes("expired") || error.message.includes("invalid")
+          ? "Code expired or already used. Click “Send new code” — do not click the email link, only type the 6 digits."
+          : error.message
+      );
       return;
     }
     router.replace("/");
+    router.refresh();
   }
 
   return (
@@ -73,25 +96,39 @@ export default function LoginPage() {
 
           {stage === "code" && (
             <div>
-              <Label>6-digit code (webview fallback)</Label>
+              <Label>6-digit code</Label>
               <Input
                 inputMode="numeric"
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                 placeholder="••••••"
+                autoComplete="one-time-code"
               />
             </div>
           )}
 
           {stage === "email" ? (
-            <Button className="w-full" disabled={busy || !email} onClick={sendLink}>
+            <Button className="w-full" disabled={busy || !email.trim()} onClick={sendLink}>
               {busy ? "Sending…" : "Send magic link"}
             </Button>
           ) : (
-            <Button className="w-full" disabled={busy || code.length !== 6} onClick={verifyCode}>
-              {busy ? "Verifying…" : "Verify code"}
-            </Button>
+            <div className="space-y-2">
+              <Button className="w-full" disabled={busy || code.length !== 6} onClick={verifyCode}>
+                {busy ? "Verifying…" : "Verify code"}
+              </Button>
+              <GhostButton
+                className="w-full text-sm"
+                disabled={busy}
+                onClick={() => {
+                  setStage("email");
+                  setCode("");
+                  setMsg(null);
+                }}
+              >
+                Send new code
+              </GhostButton>
+            </div>
           )}
 
           {msg && <p className="text-xs text-slate-600">{msg}</p>}
