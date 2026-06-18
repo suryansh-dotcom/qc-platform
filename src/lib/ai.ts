@@ -46,7 +46,7 @@ export async function runAiAssessment(
   context: unknown,
   maxAttempts = 3
 ): Promise<AiAssessment | null> {
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.MOONSHOT_API_KEY;
   if (!key) return null;
   const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
 

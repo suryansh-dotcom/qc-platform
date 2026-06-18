@@ -9,7 +9,7 @@ cron/Edge-Function reports, AI engine) build on top of this and are not yet wire
 - Node.js 18.18+ (or 20+)
 - A Supabase project (free tier is fine to start)
 - A Gmail account with a 16-character App Password (for the Phase 2/4 email engine)
-- An Anthropic API key (for the Phase 5 AI engine)
+- A Moonshot API key (for the Phase 5 AI engine)
 
 ## 1. Create the Supabase project
 1. Go to supabase.com → New project. Note the **project ref**, **region**, and **database password**.
@@ -181,7 +181,7 @@ select cron.schedule('qc-daily','30 11 * * *', $$
   **absolute** `{target}`, **tenure_adjusted** `{target,graceDays,graceFactor}`
   (grace by `join_date`), and **dynamic_stddev** `{lookbackDays,k}` (trailing
   group median, with a floor at median − k·σ).
-- Set `ANTHROPIC_API_KEY` and optionally `ANTHROPIC_MODEL` (default
+-- Set `MOONSHOT_API_KEY` and optionally `ANTHROPIC_MODEL` (default
   `claude-sonnet-4-6`). The AI worker uses structured tool-use to return strict
   JSON; on any API failure it degrades cleanly to raw-math scoring. Systemic
   alerts (cross-associate defect-tag intersections, task rollover, repetitive
