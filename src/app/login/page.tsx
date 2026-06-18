@@ -19,10 +19,18 @@ export default function LoginPage() {
     setMsg(null);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
+      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/` },
     });
     setBusy(false);
-    if (error) return setMsg(error.message);
+    if (error) {
+      console.error("signInWithOtp error:", error);
+      try {
+        setMsg(error.message ?? JSON.stringify(error));
+      } catch (e) {
+        setMsg(String(error));
+      }
+      return;
+    }
     setStage("code");
     setMsg("Check your email. Tap the link, or enter the 6-digit code below.");
   }
@@ -33,7 +41,15 @@ export default function LoginPage() {
     setMsg(null);
     const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
     setBusy(false);
-    if (error) return setMsg(error.message);
+    if (error) {
+      console.error("verifyOtp error:", error);
+      try {
+        setMsg(error.message ?? JSON.stringify(error));
+      } catch (e) {
+        setMsg(String(error));
+      }
+      return;
+    }
     router.replace("/");
   }
 
